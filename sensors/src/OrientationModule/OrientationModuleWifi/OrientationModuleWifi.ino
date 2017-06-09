@@ -43,8 +43,8 @@
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
 int status = WL_IDLE_STATUS;
-char ssid[] = "Projektil"; //  your network SSID (name)
-char pass[] = "Projektil4InternalUse";    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "patrick"; //  your network SSID (name)
+char pass[] = "0od53cs2i1847";    // your network password (use for WPA, or use as key for WEP)
 
 WiFiUDP Udp;
 
@@ -219,7 +219,7 @@ void initialiseSensor()
 //    }
 //    else
 //    {
-        Serial.println("Please Calibrate Sensor: ");
+//        Serial.println("Please Calibrate Sensor: ");
 //        while (!bno.isFullyCalibrated())
 //        {
 //            bno.getEvent(&event);
@@ -249,7 +249,7 @@ void initialiseSensor()
     bno.getSensorOffsets(newCalib);
     displaySensorOffsets(newCalib);
 
-    Serial.println("\n\nStoring calibration data to EEPROM...");
+   // Serial.println("\n\nStoring calibration data to EEPROM...");
 
   //  eeAddress = 0;
    // bno.getSensor(&sensor);
@@ -303,7 +303,7 @@ void sendSensorData()
     measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
     measuredvbat /= 1024; // convert to voltage
 
-    Udp.beginPacket("192.168.69.196", 7775);
+    Udp.beginPacket("172.20.10.3", 7775);
     
     Udp.write('o');   // header character
    

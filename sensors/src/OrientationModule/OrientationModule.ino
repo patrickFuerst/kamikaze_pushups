@@ -150,6 +150,7 @@ void displaySensorOffsets(const adafruit_bno055_offsets_t &calibData)
 /**************************************************************************/
 void setup(void)
 {
+    //WiFi.setPins(8,7,4,2);
     Serial.begin(115200);
     delay(1000);
     Serial.println("Orientation Sensor Test"); Serial.println("");

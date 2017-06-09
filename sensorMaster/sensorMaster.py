@@ -17,7 +17,6 @@ from threading import Thread, Timer
 import traceback
 import struct
 import glob
-import nfc
 
 logger = logging.getLogger("SensorMaster")
 logger.setLevel(logging.DEBUG)
@@ -183,38 +182,6 @@ if __name__ == '__main__':
 
 	reconnection_timer = None
 
-	def connect_and_start_rotation_sensor():
-		global rot_sensor
-		global reconnection_timer
-		rot_sensor_ports = glob.glob('/dev/ttyACM*')
-		rot_sensor_baudrate = 115200
-
-		if len(rot_sensor_ports) < 1:
-			logger.error("Couldn't find Rotation-Sensor device")
-			reconnection_timer = Timer(10.0 , connect_and_start_rotation_sensor )
-			reconnection_timer.start() # try reconnecting
-			return
-
-		try:
-			# connect to serial port
-			rot_sensor = serial.Serial(rot_sensor_ports[0], baudrate=rot_sensor_baudrate,
-									   parity='N', stopbits=1, timeout=None, xonxoff=0, rtscts=0)
-		except serial.SerialException as e:
-			logger.error(e)
-
-		if rot_sensor:
-			serial_reader = SerialProcessor(data_queue, process_rotation_data)
-
-			reader_thread = serial.threaded.ReaderThread(rot_sensor, serial_reader)
-			reader_thread.daemon = True
-			reader_thread.start()
-		else:
-			reconnection_timer = Timer(10.0 , connect_and_start_rotation_sensor )
-			reconnection_timer.start() # try reconnecting
-
-
-	connect_and_start_rotation_sensor()
-
 
 	udp_socket = socket.socket( socket.AF_INET, socket.SOCK_DGRAM)
 	udp_socket.bind(('', UDP_PORT))
@@ -223,14 +190,7 @@ if __name__ == '__main__':
 	udp_reader.daemon = True
 	udp_reader.start()
 
-	clf = nfc.ContactlessFrontend()
-	result = clf.open('usb:04cc:2533') # depending on the reader this needs to be changed
-	if not result:
-		logger.error("Couldn't open NFC reader.")
-	else:
-		nfc_reader = NFCReaderThread( clf, data_queue )
-		nfc_reader.daemon = True
-		nfc_reader.start()
+
 
 
 	def exit_master():
