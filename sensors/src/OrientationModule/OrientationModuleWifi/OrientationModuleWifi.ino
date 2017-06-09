@@ -42,9 +42,9 @@
 
 Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
-int status = WL_IDLE_STATUS;
-char ssid[] = "patrick"; //  your network SSID (name)
-char pass[] = "0od53cs2i1847";    // your network password (use for WPA, or use as key for WEP)
+int status = WL_IDLE_STATUS;  
+char ssid[] = "chruthli"; //  your network SSID (name)
+char pass[] = "pfumpfli2";    // your network password (use for WPA, or use as key for WEP)
 
 WiFiUDP Udp;
 
@@ -167,46 +167,7 @@ void initialiseSensor()
         while (1);
     }
 
-//    int eeAddress = 0;
-//    long bnoID;
-//    bool foundCalib = false;
-//
-//    EEPROM.get(eeAddress, bnoID);
-//
-//    adafruit_bno055_offsets_t calibrationData;
-//    sensor_t sensor;
-//
-//    /*
-//    *  Look for the sensor's unique ID at the beginning oF EEPROM.
-//    *  This isn't foolproof, but it's better than nothing.
-//    */
-//    bno.getSensor(&sensor);
-//    if (bnoID != sensor.sensor_id)
-//    {
-//        Serial.println("\nNo Calibration Data for this sensor exists in EEPROM");
-//        delay(500);
-//    }
-//    else
-//    {
-//        Serial.println("\nFound Calibration for this sensor in EEPROM.");
-//        eeAddress += sizeof(long);
-//        EEPROM.get(eeAddress, calibrationData);
-//
-//        displaySensorOffsets(calibrationData);
-//
-//        Serial.println("\n\nRestoring Calibration data to the BNO055...");
-//        bno.setSensorOffsets(calibrationData);
-//
-//        Serial.println("\n\nCalibration data loaded into BNO055");
-//        foundCalib = true;
-//    }
-//
-//    delay(1000);
-//
-//
-//
-//    bno.setExtCrystalUse(true);
-//
+
     sensors_event_t event;
 //    bno.getEvent(&event);
 //    if (foundCalib){
@@ -248,18 +209,6 @@ void initialiseSensor()
     adafruit_bno055_offsets_t newCalib;
     bno.getSensorOffsets(newCalib);
     displaySensorOffsets(newCalib);
-
-   // Serial.println("\n\nStoring calibration data to EEPROM...");
-
-  //  eeAddress = 0;
-   // bno.getSensor(&sensor);
-   // bnoID = sensor.sensor_id;
-
-   // EEPROM.put(eeAddress, bnoID);
-
-   // eeAddress += sizeof(long);
-   // EEPROM.put(eeAddress, newCalib);
-   // Serial.println("Data stored to EEPROM.");
 
     Serial.println("\n--------------------------------\n");
     delay(500);
@@ -303,7 +252,7 @@ void sendSensorData()
     measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
     measuredvbat /= 1024; // convert to voltage
 
-    Udp.beginPacket("172.20.10.3", 7775);
+    Udp.beginPacket("192.168.0.100", 7775);
     
     Udp.write('o');   // header character
    
@@ -349,6 +298,9 @@ void setup() {
   //  ; // wait for serial port to connect. Needed for native USB port only
   //}
 
+  initialiseSensor();
+
+
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present");
@@ -364,20 +316,35 @@ void setup() {
     status = WiFi.begin(ssid, pass);
 
     // wait 10 seconds for connection:
-    delay(10000);
+    delay(1000);
   }
   Serial.println("Connected to wifi");
   printWifiStatus();
 
   Udp.begin(7776);
 
-  initialiseSensor();
 }
 
 void loop() {
 
+  if(WiFi.status() != WL_CONNECTED){
+    // attempt to connect to Wifi network:
+    status = WiFi.status();
+    while (status != WL_CONNECTED) {
+      Serial.print("Attempting to connect to SSID: ");
+      Serial.println(ssid);
+      // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+      status = WiFi.begin(ssid, pass);
+  
+      // wait 10 seconds for connection:
+      delay(1000);
+    }
+    Serial.println("Connected to wifi");
+    printWifiStatus();
+  }
 
   sendSensorData();
+  Serial.println("Sending data");
 
 
   /* Wait the specified delay befo
