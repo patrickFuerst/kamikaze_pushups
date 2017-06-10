@@ -252,7 +252,7 @@ void sendSensorData()
     measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
     measuredvbat /= 1024; // convert to voltage
 
-    Udp.beginPacket("192.168.0.100", 7775);
+    Udp.beginPacket("192.168.0.104", 7775);
     
     Udp.write('o');   // header character
    

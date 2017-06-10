@@ -205,8 +205,9 @@ class DataDistributerOSC(Thread):
 	def __init__(self):
 		Thread.__init__(self)
 		self.data_queue = Queue()
-		self.osc_client = udp_client.SimpleUDPClient("localhost", 6648)
-		self.osc_client_susi = udp_client.SimpleUDPClient("192.168.0.102", 6648)
+		self.osc_client = udp_client.SimpleUDPClient("192.168.0.255", 6648)
+		self.osc_client._sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+		#self.osc_client_susi = udp_client.SimpleUDPClient("192.168.0.102", 6648)
 
 
 	def run(self):
@@ -229,8 +230,9 @@ class DataDistributerOSC(Thread):
 			msg.add_arg(ay)
 			msg.add_arg(az)
 			msg = msg.build()
+
 			self.osc_client.send(msg)
-			self.osc_client_susi.send(msg)
+			#self.osc_client_susi.send(msg)
 
 
 			msg = osc_message_builder.OscMessageBuilder(address = "/calibrated")
@@ -238,7 +240,7 @@ class DataDistributerOSC(Thread):
 			msg.add_arg(o_data["calibrated"])
 			msg = msg.build()
 			self.osc_client.send(msg)
-			self.osc_client_susi.send(msg)
+			#self.osc_client_susi.send(msg)
 
 			if self.data_queue.qsize() > 10:
 				logger.warning( "Data Queue size increasing")
