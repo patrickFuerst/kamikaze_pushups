@@ -5,11 +5,16 @@ import netP5.*;
 OscP5 oscP5;
 NetAddress myRemoteLocation;
 
+// sensor values
 float ax, ay, az;
 float ox,oy,oz;
+
+// wekinator output values
+float wek_up =0; 
+float wek_idle =1;
 int is_calibrated;
 
-// define colors
+// define colors for visualization
 color[][] c_performance = { {#de7920, #ba5e20} , // bad
                             {#f3ca6f, #d39b37} , // medium
                             {#6ab187,#20948b}    // good
@@ -74,7 +79,8 @@ void draw() {
   // write heading
   fill(c_greymedium);
   textFont(font_heading, 48);
-  text("KAMIKAZE", width/2, 150);
+  text("KAMIKAZE", width/2, 130);
+  text("PUSH-UPS", width/2, 180);
   
   // draw outer circle
   switch(performance) {
@@ -104,11 +110,6 @@ void draw() {
   textFont(font_counter, 48);
   text(counter, width/2, height/2);
   
-  //if(frameCount%20 ==0) {
-    //if(is_up) { is_up = false; counter++; score += perf_value;}
-    //else is_up = true;
-    
-  //}
   // draw svg
   if(is_up) {
     shape(svg_push_up, width/2-35, height/2);
@@ -128,7 +129,8 @@ void draw() {
   text(performance_text[performance], width/2+10, height-150);
   fill(c_greymedium);
   text(score, width/2+10, height-125);
-  
+  /*
+  // write test values to screen
   text("ax: "+ax, 40, 40);
   text("ay: "+ay, 40, 65);
   text("az: "+az, 40, 90);
@@ -136,8 +138,10 @@ void draw() {
   text("oy: "+oy, 40, 140);
   text("oz: "+oz, 40, 165);
   text("countVertical: "+countVertical, 40, 190);
-  
   text("is calibrated: "+is_calibrated, 40, 250);
+  text("wekdata1: "+wek_up, 40, 290);
+  text("wekdata2: "+wek_idle, 40, 310);
+  */
 }
 
 
@@ -154,10 +158,24 @@ void oscEvent(OscMessage theOscMessage) {
   } else if (theOscMessage.addrPattern().equals("/calibrated")) {
     is_calibrated = theOscMessage.get(0).intValue();
   }
-  println("ACCELERATION: ax: "+ax+", ay: ",ay+", az: ",az);
-  println("ORIENTATION: ox: "+ox+", oy: "+oy+", oz: "+oz);
-  println("CALIBRATION: "+is_calibrated);
   
+  // read wekinator values
+  if (theOscMessage.addrPattern().equals("/output_1")) {
+    wek_up = 1.0;
+    is_up = false;
+  }
+  if (theOscMessage.addrPattern().equals("/output_2")) {
+    wek_up = 0.0;
+    wek_idle=1.0;
+    is_up = true;
+  } 
+  //println(theOscMessage.addrPattern());
+  //println("ACCELERATION: ax: "+ax+", ay: ",ay+", az: ",az);
+  //println("ORIENTATION: ox: "+ox+", oy: "+oy+", oz: "+oz);
+  //println("CALIBRATION: "+is_calibrated);
+  
+  /*
+  // count push-ups without machine learning values
   if(has_started && abs(az-last_az) >0.01) {
     countVertical += (az*sq(0.1))/2;
     last_az = az;
@@ -174,7 +192,9 @@ void oscEvent(OscMessage theOscMessage) {
        score += perf_value;
        
      }
+     */
      
+     // calculate performance using the orientation values from the sensor
      diffOx = abs(startOx - ox);
      diffOy = abs(startOy - oy);
      diffOz = abs(startOz - oz);
@@ -186,9 +206,14 @@ void oscEvent(OscMessage theOscMessage) {
      } else {
        performance =2;
      }
-     
+ // }
+
+  // count push-ups WITH machine learning values
+  if(wek_up == 1.0 && wek_idle==1.0) {
+       counter++;
+       score += perf_value;
+       wek_idle =0.0;
   }
-  
 
 }
 
